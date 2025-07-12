@@ -24,11 +24,8 @@ Next, run the MCP server :
 go run .
 ~~~
 
-Finally, use the python script to test access to the MCP server and test the execution of the list_all_roles function :
+Finally, run tests to create a client to access to the MCP server and test the execution of the list_all_roles function :
 
 ~~~bash
-python -m venv venv
-source venv/bin/activate
-pip install fastmcp
-python test.py
+go test
 ~~~
