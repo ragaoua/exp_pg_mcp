@@ -14,11 +14,11 @@ func TestMcpg(t *testing.T) {
 	log.Println("################## Connecting to the MCP server ##################")
 	log.Println("##################################################################")
 
-
 	c, err := client.NewStreamableHttpClient("http://localhost:8080/mcp")
 	if err != nil {
-		t.Logf("Error initializing client : %v", err)
+		t.Logf("Error instantiating client : %v", err)
 		t.Fail()
+		return
 	}
 	defer func() {
 		err = c.Close()
@@ -33,8 +33,9 @@ func TestMcpg(t *testing.T) {
 	initRequest := mcp.InitializeRequest{}
 	_, err = c.Initialize(ctx, initRequest)
 	if err != nil {
-		t.Logf("Error initializing the client : %v", err)
+		t.Logf("Error initializing client : %v", err)
 		t.Fail()
+		return
 	}
 
         log.Println("Connection successful")
@@ -50,6 +51,7 @@ func TestMcpg(t *testing.T) {
 	if err != nil {
 		t.Logf("Error listing tools : %v", err)
 		t.Fail()
+		return
 	}
 
 	log.Println("Available tools:")
@@ -72,6 +74,7 @@ func TestMcpg(t *testing.T) {
 	if err != nil {
 		t.Logf("Error executing tool : %v", err)
 		t.Fail()
+		return
 	}
 	log.Println("Result:")
 	log.Printf("%v", result.Content)
