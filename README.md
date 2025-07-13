@@ -18,14 +18,11 @@ First, spawn a PostgreSQL database cluster :
 podman run --rm --name tmp_pg -e POSTGRES_HOST_AUTH_METHOD=trust -p 5432:5432 postgres
 ~~~
 
-Next, run the MCP server :
+Next, run tests :
 
 ~~~bash
-go run .
-~~~
-
-Finally, run tests to create a client to access to the MCP server and test the execution of the list_all_roles function :
-
-~~~bash
+cd server
 go test
 ~~~
+
+This will start the MCP server and create a client to access it and test the execution of the list_all_roles function

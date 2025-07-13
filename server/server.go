@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
-func main() {
+func Start() error {
 	mcp_server := server.NewMCPServer(
 		"MCPG",
 		"0.1",
@@ -28,9 +28,7 @@ func main() {
 	log.Println("Starting StreamableHTTP server on localhost:8080")
 	httpServer := server.NewStreamableHTTPServer(mcp_server)
 	err := httpServer.Start("localhost:8080")
-	if err != nil {
-		log.Fatal(err)
-	}
+	return err
 }
 
 func listAllRolesHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {

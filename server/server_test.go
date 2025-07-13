@@ -1,15 +1,31 @@
-package main
+package server
 
 import (
 	"log"
 	"testing"
 	"context"
+	"time"
 
 	"github.com/mark3labs/mcp-go/client"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
 func TestMcpg(t *testing.T) {
+	log.Println("################################################################")
+	log.Println("################## Starting up the MCP server ##################")
+	log.Println("################################################################")
+	go func() {
+		err := Start()
+		if err != nil {
+			t.Errorf("Server start up failed: %v", err)
+			t.Fail()
+		}
+	}()
+	
+	// Give the server some time to properly start up
+	// TODO : There's probably a better way to do this...
+	time.Sleep(2 * time.Second)
+
 	log.Println("##################################################################")
 	log.Println("################## Connecting to the MCP server ##################")
 	log.Println("##################################################################")
