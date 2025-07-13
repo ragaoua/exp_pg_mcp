@@ -15,7 +15,7 @@ This is a small project for me to learn Golang.
 First, spawn a PostgreSQL database cluster :
 
 ~~~bash
-podman run --rm --name tmp_pg -e POSTGRES_HOST_AUTH_METHOD=trust -p 5432:5432 postgres
+podman run --rm --detach --name mcpg_tmp_pg -e POSTGRES_HOST_AUTH_METHOD=trust -p 5432:5432 postgres
 ~~~
 
 Next, run tests :
