@@ -5,17 +5,15 @@ import traceback
 from fastmcp import Client
 import asyncio
 
-import ollama
 from openai import OpenAI
 
 async def main():
-    for var in ["OPENAI_BASE_URL", "OLLAMA_HOST", "MCP_HOST"]:
+    for var in ["OPENAI_BASE_URL", "MCP_HOST", "MODEL"]:
         if var not in os.environ:
             print(f"Variable {var} not found")
             sys.exit(1)
 
-    model = "llama3.1"
-    ollama.pull(model)
+    model = os.getenv("MODEL")
     client = OpenAI(api_key="")
     messages = [
         {

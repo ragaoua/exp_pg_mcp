@@ -1,4 +1,4 @@
-version: '3.8'
+x-ollama-model: &ollama-model "llama3.1"
 
 services:
   db:
@@ -11,10 +11,12 @@ services:
       interval: 5s
       timeout: 2s
       retries: 10
+
   server:
     image: golang
     container_name: mcpg_server
-    volumes: ../:/app
+    volumes:
+      - ../:/app
     working_dir: /app
     environment:
       DB_URL: "postgres://postgres@db:5432/postgres"
@@ -30,11 +32,12 @@ services:
     depends_on:
       db:
         condition: service_healthy
+
   ollama:
     image: ollama/ollama
     container_name: mcpg_ollama
-    gpus:
-      - all
+    # NOTE : uncomment to use Nvidia GPUs. I'm using Apple GPUs
+    # gpus: all
     volumes:
       - ./ollama_data:/root/.ollama
     healthcheck:
@@ -43,6 +46,17 @@ services:
       interval: 5s
       timeout: 2s
       retries: 10
+  ollama-init:
+    image: ollama/ollama
+    container_name: mcpg_ollama-init
+    environment:
+      OLLAMA_HOST: "http://ollama:11434"
+    depends_on:
+      ollama:
+        condition: service_healthy
+        restart: true
+    command: ["pull", *ollama-model]
+
   app:
     image: python
     container_name: mcpg_python_app
@@ -55,11 +69,15 @@ services:
       - pip install --upgrade pip && pip install -r requirements.txt && python app.py
     environment:
       OPENAI_BASE_URL: "http://ollama:11434/v1"
-      OLLAMA_HOST: "http://ollama:11434"
       MCP_HOST: "http://server:8080/mcp"
+      MODEL: *ollama-model
     depends_on:
-      ollama:
-        condition: service_healthy
+      # NOTE : This works with docker, but not with version 5.5.2 of podman.
+      # With podman, I get this error :
+      # [app]         | Error: unable to start container <app container ID>: preparing container <app container ID> for attach: generating dependency graph for container <app container ID>: container <ollama-init container ID> depends on container <ollama container ID> not found in input list: no such container
+      # It seems the issue is known, fixed, but not yet released : https://github.com/containers/podman-compose/issues/1265
+      ollama-init:
+        condition: service_completed_successfully
       server:
         # FIXME : We should wait to the MCP server to be up an running (condition: service_healthy).
         # However, the /mcp/health endpoint doesn't seem to exist even though it is documented :
