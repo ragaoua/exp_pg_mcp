@@ -1,7 +1,14 @@
 package main
 
-import "mcpg/server"
+import (
+	"log"
+
+	"mcpg/server"
+)
 
 func main() {
-    server.Start()
+	err := server.Start()
+	if err != nil {
+		log.Fatalf("error while starting the MCPG server : %v", err)
+	}
 }
