@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres
+    container_name: mcpg_db
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready --username postgres"]
+      interval: 5s
+      timeout: 2s
+      retries: 10
+  server:
+    image: golang
+    container_name: mcpg_server
+    volumes: ../:/app
+    working_dir: /app
+    environment:
+      DB_URL: "postgres://postgres@db:5432/postgres"
+    command:
+      - sh
+      - -c
+      - go run .
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/mcp/health"]
+      interval: 5s
+      timeout: 2s
+      retries: 10
+    depends_on:
+      db:
+        condition: service_healthy
+  ollama:
+    image: ollama/ollama
+    container_name: mcpg_ollama
+    gpus:
+      - all
+    volumes:
+      - ./ollama_data:/root/.ollama
+    healthcheck:
+      # The ollama image doesn't include curl, wget or nc, so we use perl
+      test: ["CMD-SHELL", "perl -e 'use IO::Socket::INET; IO::Socket::INET->new(\"localhost:11434\") or exit 1;'"]
+      interval: 5s
+      timeout: 2s
+      retries: 10
+  app:
+    image: python
+    container_name: mcpg_python_app
+    volumes:
+      - ./app:/app
+    working_dir: /app
+    command:
+      - sh
+      - -c
+      - pip install --upgrade pip && pip install -r requirements.txt && python app.py
+    environment:
+      OPENAI_BASE_URL: "http://ollama:11434/v1"
+      OLLAMA_HOST: "http://ollama:11434"
+      MCP_HOST: "http://server:8080/mcp"
+    depends_on:
+      ollama:
+        condition: service_healthy
+      server:
+        # FIXME : We should wait to the MCP server to be up an running (condition: service_healthy).
+        # However, the /mcp/health endpoint doesn't seem to exist even though it is documented :
+        # https://mcp-go.dev/transports/http/#standard-mcp-endpoints
+        # So, for now, we'll just check that the server container is started.
+        # Luckily, that works but it's not ideal
+        condition: service_started
