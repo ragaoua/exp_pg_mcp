@@ -22,7 +22,7 @@ Next, run tests :
 
 ~~~bash
 cd server
-go test
+DB_URL="postgres://postgres@localhost:5432/postgres" go test
 ~~~
 
 This will start the MCP server and create a client to access it and test the execution of the list_all_roles function

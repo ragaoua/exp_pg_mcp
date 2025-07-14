@@ -19,6 +19,7 @@ func TestMcpg(t *testing.T) {
 		if err != nil {
 			t.Errorf("Server start up failed: %v", err)
 			t.Fail()
+			// TODO : if Start fails, we should halt the test, which we are not doing right now
 		}
 	}()
 	

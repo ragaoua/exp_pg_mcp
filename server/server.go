@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
+	"errors"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -11,6 +13,13 @@ import (
 )
 
 func Start() error {
+	// TODO : Find a way to pass the DB_URL to the listAllRolesHandler.
+	// Then we'll be able to take the DB_URL as a parameter to the Start function
+	_, var_exists := os.LookupEnv("DB_URL")
+	if !var_exists {
+		return errors.New("Variable DB_URL must be set")
+	}
+
 	mcp_server := server.NewMCPServer(
 		"MCPG",
 		"0.1",
@@ -27,12 +36,14 @@ func Start() error {
 
 	log.Println("Starting StreamableHTTP server on localhost:8080")
 	httpServer := server.NewStreamableHTTPServer(mcp_server)
-	err := httpServer.Start("localhost:8080")
+	err := httpServer.Start("0.0.0.0:8080")
 	return err
 }
 
 func listAllRolesHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	roles, err := listAllRoles()
+	db_url := os.Getenv("DB_URL")
+
+	roles, err := listAllRoles(db_url)
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
 	}
@@ -41,9 +52,8 @@ func listAllRolesHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp
 }
 
 
-func listAllRoles() ([]string, error) {
-	// TODO : make the database connstring a parameter
-	conn, err := pgx.Connect(context.Background(), "postgres://postgres@localhost:5432/postgres")
+func listAllRoles(db_url string) ([]string, error) {
+	conn, err := pgx.Connect(context.Background(), db_url)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to connect to database: %v\n", err)
 	}
