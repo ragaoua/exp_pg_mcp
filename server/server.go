@@ -34,9 +34,9 @@ func Start() error {
 		listAllRolesHandler,
 	)
 
-	log.Println("Starting StreamableHTTP server on localhost:8080")
+	log.Println("Starting StreamableHTTP server on :8080")
 	httpServer := server.NewStreamableHTTPServer(mcp_server)
-	err := httpServer.Start("0.0.0.0:8080")
+	err := httpServer.Start(":8080")
 	return err
 }
 
