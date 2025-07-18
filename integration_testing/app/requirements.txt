@@ -1,2 +1,2 @@
 openai
-fastmcp
+openai-agents

@@ -1,11 +1,14 @@
 import os, sys
 import json
 import traceback
-
-from fastmcp import Client
 import asyncio
 
-from openai import OpenAI
+from openai import AsyncOpenAI
+
+from agents import Agent, Runner, OpenAIChatCompletionsModel
+from agents.mcp import MCPServerStreamableHttp
+from agents.run_context import RunContextWrapper
+
 
 async def main():
     for var in ["OPENAI_BASE_URL", "MCP_HOST", "MODEL"]:
@@ -13,74 +16,32 @@ async def main():
             print(f"Variable {var} not found")
             sys.exit(1)
 
+    openaiBaseUrl = os.getenv("OPENAI_BASE_URL")
+    mcpHost = os.getenv("MCP_HOST")
     model = os.getenv("MODEL")
-    client = OpenAI(api_key="")
-    messages = [
-        {
-            "role": "system",
-            "content": "You're a helpful assistant for a database system administrator"
-        },
-        {
-            "role": "user",
-            "content": "Can you tell me how many roles there are in the cluster ?"
-        }
-    ]
 
-    try:
-        async with Client(os.getenv("MCP_HOST")) as mcpClient:
-            tools = await mcpClient.list_tools()
+    client = AsyncOpenAI(
+        base_url=openaiBaseUrl,
+        api_key="",
+    )
 
-            while True:
-                response = client.chat.completions.create(
-                    model=model,
-                    messages=messages,
-                    tools=[
-                        {
-                            "type": "function",
-                            "function": {
-                                "name": tool.name,
-                                "description": tool.description,
-                            },
-                            "parameters": tool.inputSchema
-                        } for tool in tools
-                    ],
-                ).choices[0].message
+    async with MCPServerStreamableHttp(params={"url": mcpHost}) as mcpServer:
+        agent = Agent(
+            name="Assistant",
+            instructions="use the tools to answer the questions",
+            model=OpenAIChatCompletionsModel(
+                model=model,
+                openai_client=client,
+            ),
+            mcp_servers=[mcpServer],
+        )
 
-                if not response.tool_calls:
-                    messages.append({
-                        "role": "assistant",
-                        "content": response.content
-                    })
-                    break
+        result = await Runner.run(
+            starting_agent=agent,
+            input="Can you tell me how many roles there are in the cluster ?",
+        )
+        print(result)
 
-                messages.append({
-                    "role": "assistant",
-                    "tool_calls": [
-                        {
-                            "id": tc.id,
-                            "function": tc.function,
-                            "type": tc.type
-                        } for tc in response.tool_calls
-                    ]
-                })
-
-                for tc in response.tool_calls:
-                    args = json.loads(tc.function.arguments)
-
-                    tc_result = await mcpClient.call_tool(tc.function.name, **args)
-                    tc_result_content = tc_result.content[0].text
-                    messages.append({
-                        "role": "tool",
-                        "tool_call_id": tc.id,
-                        "name": tc.function.name,
-                        "content": tc_result_content
-                    })
-    except Exception:
-        print(traceback.format_exc())
-
-    print("####################################")
-    print(messages)
-    print("####################################")
 
 if __name__ == "__main__":
     asyncio.run(main())
