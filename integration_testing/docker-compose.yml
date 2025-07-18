@@ -11,6 +11,18 @@ services:
       interval: 5s
       timeout: 2s
       retries: 10
+  db-init:
+    image: postgres
+    container_name: mcpg_db-init
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+    command:
+      - sh
+      - -c
+      - psql -h db postgres postgres -c "create role toto"
+    depends_on:
+      db:
+        condition: service_healthy
 
   server:
     image: golang
@@ -30,8 +42,8 @@ services:
       timeout: 2s
       retries: 10
     depends_on:
-      db:
-        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
 
   ollama:
     image: ollama/ollama
