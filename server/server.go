@@ -13,9 +13,7 @@ import (
 )
 
 func Start() error {
-	// TODO : Find a way to pass the DB_URL to the listAllRolesHandler.
-	// Then we'll be able to take the DB_URL as a parameter to the Start function
-	_, var_exists := os.LookupEnv("DB_URL")
+	db_url, var_exists := os.LookupEnv("DB_URL")
 	if !var_exists {
 		return errors.New("Variable DB_URL must be set")
 	}
@@ -31,7 +29,9 @@ func Start() error {
 			"list_all_roles",
 			mcp.WithDescription("list all roles in the cluster"),
 		),
-		listAllRolesHandler,
+		func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			return listAllRolesHandler(ctx, request, db_url)
+		},
 	)
 
 	log.Println("Starting StreamableHTTP server on :8080")
@@ -40,9 +40,7 @@ func Start() error {
 	return err
 }
 
-func listAllRolesHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	db_url := os.Getenv("DB_URL")
-
+func listAllRolesHandler(ctx context.Context, request mcp.CallToolRequest, db_url string) (*mcp.CallToolResult, error) {
 	roles, err := listAllRoles(db_url)
 	if err != nil {
 		return mcp.NewToolResultError(err.Error()), nil
