@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"log"
+	"os"
 	"testing"
 	"time"
 
@@ -11,11 +12,18 @@ import (
 )
 
 func TestMcpg(t *testing.T) {
+	db_url, var_exists := os.LookupEnv("DB_URL")
+	if !var_exists {
+		t.Errorf("Variable DB_URL must be set")
+		t.Fail()
+		return
+	}
+
 	log.Println("################################################################")
 	log.Println("################## Starting up the MCP server ##################")
 	log.Println("################################################################")
 	go func() {
-		err := Start()
+		err := Start(db_url)
 		if err != nil {
 			t.Errorf("Server start up failed: %v", err)
 			t.Fail()

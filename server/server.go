@@ -2,22 +2,15 @@ package server
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
 
-func Start() error {
-	db_url, var_exists := os.LookupEnv("DB_URL")
-	if !var_exists {
-		return errors.New("Variable DB_URL must be set")
-	}
-
+func Start(db_url string) error {
 	mcp_server := server.NewMCPServer(
 		"MCPG",
 		"0.1",
