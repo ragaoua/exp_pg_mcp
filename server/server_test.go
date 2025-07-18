@@ -15,7 +15,6 @@ func TestMcpg(t *testing.T) {
 	db_url, var_exists := os.LookupEnv("DB_URL")
 	if !var_exists {
 		t.Errorf("Variable DB_URL must be set")
-		t.Fail()
 		return
 	}
 
@@ -26,7 +25,6 @@ func TestMcpg(t *testing.T) {
 		err := Start(db_url)
 		if err != nil {
 			t.Errorf("Server start up failed: %v", err)
-			t.Fail()
 			// TODO : if Start fails, we should halt the test, which we are not doing right now
 		}
 	}()
@@ -41,15 +39,13 @@ func TestMcpg(t *testing.T) {
 
 	c, err := client.NewStreamableHttpClient("http://localhost:8080/mcp")
 	if err != nil {
-		t.Logf("Error instantiating client : %v", err)
-		t.Fail()
+		t.Errorf("Error instantiating client : %v", err)
 		return
 	}
 	defer func() {
 		err = c.Close()
 		if err != nil {
-			t.Logf("Error closing client : %v", err)
-			t.Fail()
+			t.Errorf("Error closing client : %v", err)
 		}
 	}()
 
@@ -58,8 +54,7 @@ func TestMcpg(t *testing.T) {
 	initRequest := mcp.InitializeRequest{}
 	_, err = c.Initialize(ctx, initRequest)
 	if err != nil {
-		t.Logf("Error initializing client : %v", err)
-		t.Fail()
+		t.Errorf("Error initializing client : %v", err)
 		return
 	}
 
@@ -73,8 +68,7 @@ func TestMcpg(t *testing.T) {
 	toolsRequest := mcp.ListToolsRequest{}
 	tools, err := c.ListTools(ctx, toolsRequest)
 	if err != nil {
-		t.Logf("Error listing tools : %v", err)
-		t.Fail()
+		t.Errorf("Error listing tools : %v", err)
 		return
 	}
 
@@ -95,8 +89,7 @@ func TestMcpg(t *testing.T) {
 		},
 	)
 	if err != nil {
-		t.Logf("Error executing tool : %v", err)
-		t.Fail()
+		t.Errorf("Error executing tool : %v", err)
 		return
 	}
 	log.Println("Result:")
