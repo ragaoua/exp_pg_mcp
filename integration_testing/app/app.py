@@ -1,6 +1,4 @@
 import os, sys
-import json
-import traceback
 import asyncio
 
 from openai import AsyncOpenAI
