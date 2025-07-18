@@ -1,9 +1,9 @@
 package server
 
 import (
+	"context"
 	"log"
 	"testing"
-	"context"
 	"time"
 
 	"github.com/mark3labs/mcp-go/client"
@@ -22,7 +22,7 @@ func TestMcpg(t *testing.T) {
 			// TODO : if Start fails, we should halt the test, which we are not doing right now
 		}
 	}()
-	
+
 	// Give the server some time to properly start up
 	// TODO : There's probably a better way to do this...
 	time.Sleep(2 * time.Second)
@@ -55,14 +55,13 @@ func TestMcpg(t *testing.T) {
 		return
 	}
 
-        log.Println("Connection successful")
-        log.Println()
-        log.Println()
+	log.Println("Connection successful")
+	log.Println()
+	log.Println()
 
-
-        log.Println("#############################################################")
-        log.Println("################## Listing available tools ##################")
-        log.Println("#############################################################")
+	log.Println("#############################################################")
+	log.Println("################## Listing available tools ##################")
+	log.Println("#############################################################")
 	toolsRequest := mcp.ListToolsRequest{}
 	tools, err := c.ListTools(ctx, toolsRequest)
 	if err != nil {
@@ -75,17 +74,16 @@ func TestMcpg(t *testing.T) {
 	for _, tool := range tools.Tools {
 		log.Printf("%v : %v\n", tool.Name, tool.Description)
 	}
-        log.Println()
-        log.Println()
+	log.Println()
+	log.Println()
 
-
-        log.Println("##############################################################")
-        log.Println("################## Executing list_all_roles ##################")
-        log.Println("##############################################################")
+	log.Println("##############################################################")
+	log.Println("################## Executing list_all_roles ##################")
+	log.Println("##############################################################")
 	result, err := c.CallTool(
 		ctx,
 		mcp.CallToolRequest{
-			Params: mcp.CallToolParams{ Name: "list_all_roles" },
+			Params: mcp.CallToolParams{Name: "list_all_roles"},
 		},
 	)
 	if err != nil {

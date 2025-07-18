@@ -2,10 +2,10 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
-	"errors"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -50,7 +50,6 @@ func listAllRolesHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp
 
 	return mcp.NewToolResultText(fmt.Sprintf("%v", roles)), nil
 }
-
 
 func listAllRoles(db_url string) ([]string, error) {
 	conn, err := pgx.Connect(context.Background(), db_url)
